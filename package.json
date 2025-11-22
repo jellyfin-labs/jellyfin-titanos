@@ -8,7 +8,8 @@
 		"build:nativeshell": "rolldown -c",
 		"package": "node scripts/package.ts",
 		"serve": "node scripts/serve.ts",
-		"clean": "node scripts/clean.ts"
+		"clean": "node scripts/clean.ts",
+		"update:web": "node scripts/update-web.ts"
 	},
 	"engines": {
 		"node": ">=22.18.0"
