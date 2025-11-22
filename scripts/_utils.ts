@@ -9,6 +9,8 @@ export const paths = {
 	distNativeshell: path.join(import.meta.dirname, '../dist/nativeshell'),
 	distPackage: path.join(import.meta.dirname, '../dist/package'),
 	distPackageIndex: path.join(import.meta.dirname, '../dist/package/index.html'),
+	distPackageConfig: path.join(import.meta.dirname, '../dist/package/config.json'),
+	overridePackageConfig: path.join(import.meta.dirname, '../src/config.web.json'),
 };
 
 export async function exec(cmd: string, ...params: string[]): Promise<void> {
