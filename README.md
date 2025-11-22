@@ -5,7 +5,7 @@
 
 <img alt="Logo Banner" src="https://raw.githubusercontent.com/jellyfin/jellyfin-ux/master/branding/SVG/banner-logo-solid.svg?sanitize=true"/>
 
-Jellyfin for Titan OS is the official Jellyfin client for devices using [Titan OS](https://www.titanos.tv/). The client is a bundle of [jellyfin-web](https://github.com/jellyfin/jellyfin-web) with a custom native shell implementation.
+Jellyfin for Titan OS is the official Jellyfin client for devices using [Titan OS](https://www.titanos.tv/). The client is a combination of [jellyfin-web](https://github.com/jellyfin/jellyfin-web) with a custom native shell implementation.
 
 ## Repository structure
 
