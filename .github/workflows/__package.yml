@@ -1,0 +1,45 @@
+name: Packaging 📦
+
+on:
+  workflow_call:
+    inputs:
+      commit:
+        required: false
+        type: string
+
+jobs:
+  run-build-prod:
+    name: Run production build 🏗️
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: ${{ inputs.commit || github.sha }}
+          submodules: true
+
+      - name: Setup node environment
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          cache: npm
+          check-latest: true
+
+      - name: Install Node.js dependencies
+        run: npm ci --no-audit
+
+      - name: Build native shell
+        run: npm run build:nativeshell
+
+      - name: Build web
+        run: npm run build:web
+
+      - name: Package
+        run: npm run package
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: package
+          path: dist/package

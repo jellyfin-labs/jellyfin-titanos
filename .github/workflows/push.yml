@@ -1,0 +1,31 @@
+name: Push 🌍
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'push' && github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  main:
+    name: "Unstable release 🚀⚠️"
+    uses: ./.github/workflows/__package.yml
+    with:
+      commit: ${{ github.sha }}
+
+  deploy:
+    name: Deploy 🚀
+    if: ${{ github.repository == 'jellyfin-labs/jellyfin-titanos' }}
+    uses: ./.github/workflows/__deploy.yml
+    needs:
+      - main
+    permissions:
+      contents: read
+      deployments: write
+    secrets: inherit
+    with:
+      branch: ${{ github.ref_name }}
+      environment: unstable
