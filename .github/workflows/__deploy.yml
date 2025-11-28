@@ -15,14 +15,12 @@ on:
         default: package
 
 jobs:
-  cf-pages:
-    name: CloudFlare Pages 📃
+  deploy:
+    name: Deploy to ${{ inputs.environment }} 📃
     runs-on: ubuntu-latest
-    environment: 
+    environment:
       name: ${{ inputs.environment }}
-      url: ${{ steps.cf.outputs.deployment-url }}
-    outputs:
-      url: ${{ steps.cf.outputs.deployment-url }}
+      url: ${{ inputs.environment }}.titanos.jellyfin.org
 
     steps:
       - name: Download workflow artifact ⬇️
@@ -31,10 +29,12 @@ jobs:
           name: ${{ inputs.artifact_name }}
           path: dist/package
 
-      - name: Publish to Cloudflare Pages 📃
-        uses: cloudflare/wrangler-action@da0e0dfe58b7a431659754fdf3f186c529afbe65 # v3.14.1
-        id: cf
+      - name: Deploy to ${{ inputs.environment }}.titanos.jellyfin.org
+        uses: burnett01/rsync-deployments@33214bd98ba4ac2be90f5976672b3f030fce9ce4 # 7.1.0
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist/package --project-name=jellyfin-titanos --branch=${{ inputs.environment }}
+          switches: -vrptz
+          path: dist/package/
+          remote_path: /srv/titanos/${{ inputs.environment }}/
+          remote_host: ${{ secrets.DEPLOY_APPS1_HOST }}
+          remote_user: ${{ secrets.DEPLOY_APPS1_USER }}
+          remote_key: ${{ secrets.DEPLOY_APPS1_KEY }}

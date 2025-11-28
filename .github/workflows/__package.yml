@@ -8,7 +8,7 @@ on:
         type: string
 
 jobs:
-  run-build-prod:
+  package:
     name: Run production build 🏗️
     runs-on: ubuntu-latest
 
