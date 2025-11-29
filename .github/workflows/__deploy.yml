@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: ${{ inputs.environment }}
-      url: ${{ inputs.environment }}.titanos.jellyfin.org
+      url: https://${{ inputs.environment }}.titanos.jellyfin.org
 
     steps:
       - name: Download workflow artifact ⬇️
