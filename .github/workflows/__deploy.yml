@@ -30,7 +30,7 @@ jobs:
           path: dist/package
 
       - name: Deploy to ${{ inputs.environment }}.titanos.jellyfin.org
-        uses: burnett01/rsync-deployments@0c902521b8b9135f0dae7841a01d7d3b19629cb2 # 8.0.2
+        uses: burnett01/rsync-deployments@7659d600d8bdd035bb5cdfba1d4bd0dd4a307ca6 # 8.0.3
         with:
           switches: -vrptz
           path: dist/package/
