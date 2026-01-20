@@ -17,7 +17,7 @@
 	"devDependencies": {
 		"@tsconfig/node-lts": "24.0.0",
 		"@tsconfig/node-ts": "23.6.2",
-		"@types/node": "24.10.7",
+		"@types/node": "24.10.8",
 		"@types/polka": "0.5.8",
 		"@types/serve-static": "2.2.0",
 		"polka": "0.5.2",
