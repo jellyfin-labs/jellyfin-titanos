@@ -10,7 +10,7 @@ let deviceInfo: DeviceInfo;
 
 window.NativeShell = {
 	getPlugins() {
-		return ['TitanOsLoaderPlugin'];
+		return [];
 	},
 
 	AppHost: {

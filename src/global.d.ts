@@ -7,11 +7,6 @@ declare global {
 		 * Native shell we provide for jellyfin-web to interact with Titan OS.
 		 */
 		NativeShell: any;
-
-		/**
-		 * Our loader plugin for jellyfin-web.
-		 */
-		TitanOsLoaderPlugin: any;
 	}
 
 	// Build variables
