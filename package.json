@@ -12,7 +12,7 @@
 		"update:web": "node scripts/update-web.ts"
 	},
 	"engines": {
-		"node": ">=22.18.0"
+		"node": ">=24.0.0"
 	},
 	"devDependencies": {
 		"@tsconfig/node-lts": "24.0.0",
@@ -22,7 +22,7 @@
 		"@types/polka": "0.5.8",
 		"@types/serve-static": "2.2.0",
 		"polka": "0.5.2",
-		"rolldown": "1.0.0-beta.60",
+		"rolldown": "1.0.0-rc.1",
 		"serve-static": "2.2.1"
 	},
 	"dependencies": {
