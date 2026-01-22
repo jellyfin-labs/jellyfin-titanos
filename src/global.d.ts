@@ -13,4 +13,13 @@ declare global {
 		 */
 		TitanOsLoaderPlugin: any;
 	}
+
+	// Build variables
+	interface ImportMeta {
+		readonly env: {
+			VERSION_NAME?: string;
+		};
+	}
 }
+
+export { };

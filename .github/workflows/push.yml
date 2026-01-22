@@ -15,6 +15,7 @@ jobs:
     uses: ./.github/workflows/__package.yml
     with:
       commit: ${{ github.sha }}
+      version_name: "Unstable (${{ github.ref_name }})"
 
   deploy:
     name: Deploy 🚀

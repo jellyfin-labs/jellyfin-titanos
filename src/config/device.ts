@@ -14,7 +14,6 @@ export async function getDeviceInfo(titanSDK: TitanSDK): Promise<DeviceInfo> {
 		deviceId: nativeInfo.Product.deviceID,
 		deviceName: nativeInfo.Product.platform,
 		appName: 'Jellyfin for Titan OS',
-		// TODO Add version to deployment CI
-		appVersion: 'Unknown',
+		appVersion: import.meta.env.VERSION_NAME || 'Unknown',
 	};
 }
