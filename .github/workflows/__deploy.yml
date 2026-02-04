@@ -29,12 +29,15 @@ jobs:
           name: ${{ inputs.artifact_name }}
           path: dist/package
 
-      - name: Deploy to ${{ inputs.environment }}.titanos.jellyfin.org
-        uses: burnett01/rsync-deployments@dc0d5d44c4728aad3f02154a87309809e62a960f # 8.0.4
-        with:
-          switches: -vrptz
-          path: dist/package/
-          remote_path: /srv/titanos/${{ inputs.environment }}/
-          remote_host: ${{ secrets.DEPLOY_APPS_HOST }}
-          remote_user: ${{ secrets.DEPLOY_APPS_USER }}
-          remote_key: ${{ secrets.DEPLOY_APPS_KEY }}
+      - name: Configure deployment 🔐
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_APPS_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H "${{ secrets.DEPLOY_APPS_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Deploy to ${{ inputs.environment }}.titanos.jellyfin.org 🚀
+        env:
+          TARGET_PATH: /srv/titanos/${{ inputs.environment }}/
+          SOURCE_PATH: dist/package/
+        run: rsync -vrptz -e "ssh -i ~/.ssh/id_rsa" "$SOURCE_PATH" "${{ secrets.DEPLOY_APPS_USER }}@${{ secrets.DEPLOY_APPS_HOST }}:$TARGET_PATH"
