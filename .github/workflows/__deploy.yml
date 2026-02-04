@@ -34,10 +34,9 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.DEPLOY_APPS_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H "${{ secrets.DEPLOY_APPS_HOST }}" >> ~/.ssh/known_hosts
 
       - name: Deploy to ${{ inputs.environment }}.titanos.jellyfin.org 🚀
         env:
           TARGET_PATH: /srv/titanos/${{ inputs.environment }}/
           SOURCE_PATH: dist/package/
-        run: rsync -vrptz -e "ssh -i ~/.ssh/id_rsa" "$SOURCE_PATH" "${{ secrets.DEPLOY_APPS_USER }}@${{ secrets.DEPLOY_APPS_HOST }}:$TARGET_PATH"
+        run: rsync -vrptz -e "ssh  -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa" "$SOURCE_PATH" "${{ secrets.DEPLOY_APPS_USER }}@${{ secrets.DEPLOY_APPS_HOST }}:$TARGET_PATH"
