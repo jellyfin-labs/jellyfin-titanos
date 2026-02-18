@@ -22,7 +22,7 @@
 		"@types/polka": "0.5.8",
 		"@types/serve-static": "2.2.0",
 		"polka": "0.5.2",
-		"rolldown": "1.0.0-rc.3",
+		"rolldown": "1.0.0-rc.4",
 		"serve-static": "2.2.1"
 	},
 	"dependencies": {
