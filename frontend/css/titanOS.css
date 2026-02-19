@@ -1,0 +1,6 @@
+/* TitanOS-specific styles - injected into iframe */
+
+body {
+	/* TitanOS specific background */
+	background-color: #000;
+}

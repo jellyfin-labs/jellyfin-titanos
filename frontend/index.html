@@ -1,0 +1,58 @@
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
+
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+	<meta name="title" content="Jellyfin for Titan OS" />
+	<meta name="description" content="Jellyfin client for Philips Titan OS Smart TVs" />
+	<!-- CSP for Titan OS - whitelist titanos.tv and Jellyfin servers -->
+	<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: http://* https://* *.titanos.tv; connect-src 'self' http://* https://*; media-src 'self' http://* https://* blob:; img-src 'self' data: http://* https://*;" />
+	<title>Jellyfin for Titan OS</title>
+	<link rel="stylesheet" href="css/main.css" type="text/css"/>
+	<script src="js/ajax.js" charset="utf-8"></script>
+	<script src="js/storage.js" charset="utf-8"></script>
+	<script src="js/index.js"></script>
+	<!-- Titan SDK - loaded from platform in DevView/Production -->
+	<script>
+		// Titan SDK shim for development/testing
+		// In production on Titan OS, this is provided by the platform
+		window.getTitanSDK = window.getTitanSDK || function() {
+			return null;
+		};
+	</script>
+</head>
+
+<body onload="Init();">
+	<div class="container">
+		<div id="logo">
+			<img src="assets/banner-dark.png">
+		</div>
+		<div id="serverInfoForm">
+			<p id="error" style="display: none;">&nbsp;</p>
+			<form onsubmit="return false;">
+				<input type="url" id="baseurl" name="baseurl" placeholder="http://jellyfin.local:8096" tabindex="0" />
+				<div class="checkbox-wrapper">
+					<input type="checkbox" id="auto_connect" name="auto_connect"
+						onclick="return handleCheckbox(this, true);"
+						onkeydown="return handleCheckbox(this, event);"
+						tabindex="1" value="1" />
+					<label for="auto_connect">Automatically connect on app launch.</label>
+				</div>
+				<button id="connect" type="button" onclick="return handleServerSelect();" tabindex="2">Connect</button>
+				<ul id="serverlist"></ul>
+			</form>
+		</div>
+		<div id="busy" style="display:none;">
+			<h1>Connecting...</h1>
+			<button id="abort" onclick="abort();">Abort</button>
+		</div>
+	</div>
+	<iframe id="contentFrame" style="display: none;"></iframe>
+</body>
+
+</html>
