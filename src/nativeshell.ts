@@ -134,12 +134,7 @@ function getDeviceProfile() {
 		profile.supportsDolbyVision = deviceCapabilities.supportHDR_DV;
 		profile.supportsHdr10 = deviceCapabilities.supportHDR_HDR10;
 		profile.supportsHdr = deviceCapabilities.supportHDR;
-		profile.supportsVideoStreamBeization = true;
 		profile.supportsPhysicalVolumeControl = true;
-		profile.supportsParentalControl = true;
-		profile.supportsAdvancedPlayback = true;
-		profile.supportsMediaPlayback = true;
-		profile.supportsNextupAutoPlay = true;
 
 		// Streaming format support
 		profile.supportsMpegDash = deviceCapabilities.supportMPEG_DASH;
@@ -203,8 +198,14 @@ function handleMessageEvent(event: MessageEvent) {
 // Initialize the native shell
 async function init() {
 	try {
-		// Wait for SDK to be ready
-		await titanSDK.isReady;
+		// Wait for SDK to be ready, with a timeout to prevent infinite hangs
+		const SDK_TIMEOUT = 10000;
+		await Promise.race([
+			titanSDK.isReady,
+			new Promise<never>((_, reject) =>
+				setTimeout(() => reject(new Error(`Titan SDK initialization timed out after ${SDK_TIMEOUT}ms`)), SDK_TIMEOUT)
+			),
+		]);
 		console.log('Titan SDK is ready');
 
 		// Get device info and capabilities
@@ -314,14 +315,9 @@ window.NativeShell = {
 		}),
 
 		supports: (command: string) => {
-			const isSupported = command && features.includes(command.toLowerCase());
-			postMessage('AppHost.supports', { command, isSupported });
-			return isSupported;
+			return command && features.includes(command.toLowerCase());
 		},
 
 		screen: () => getScreenDimensions(),
 	},
 };
-
-// Also expose for when script is loaded directly
-(window as unknown as { NativeShell: typeof window.NativeShell }).NativeShell = window.NativeShell;

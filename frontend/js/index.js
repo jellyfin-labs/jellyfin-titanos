@@ -23,11 +23,17 @@ var deviceInfo = null;
 
 function initTitanSDK() {
 	// The Titan SDK is loaded via script tag in index.html
-	// Wait for it to be ready
+	// Wait for it to be ready, with a timeout to prevent infinite hangs
 	if (typeof getTitanSDK === 'function') {
 		titanSDK = getTitanSDK();
 		if (titanSDK && titanSDK.isReady) {
-			titanSDK.isReady.then(function() {
+			var SDK_TIMEOUT = 10000;
+			Promise.race([
+				titanSDK.isReady,
+				new Promise(function(_, reject) {
+					setTimeout(function() { reject(new Error('Titan SDK initialization timed out after ' + SDK_TIMEOUT + 'ms')); }, SDK_TIMEOUT);
+				})
+			]).then(function() {
 				console.log('Titan SDK initialized');
 				loadDeviceInfo();
 			}).catch(function(err) {
@@ -398,7 +404,7 @@ function handleFailure(data) {
 	}
 
 	hideConnecting();
-	storage.remove('connected_server');
+	storage.remove('connected_servers');
 	curr_req = false;
 }
 

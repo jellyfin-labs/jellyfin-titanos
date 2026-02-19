@@ -45,12 +45,15 @@ try {
 	console.log('No frontend js');
 }
 
-// Patch index file to inject the nativehsell
+// Patch index file to inject the nativeshell before the closing </head> tag
 let indexContent = await fs.readFile(paths.distPackageIndex).then(buffer => buffer.toString());
-indexContent = indexContent.replace(/<script/, (match) => {
-	const injection = `<script src="jellyfin-titanos.js" defer></script>`;
-	return injection + match;
-});
+const injection = `<script src="jellyfin-titanos.js" defer></script>`;
+if (indexContent.includes('</head>')) {
+	indexContent = indexContent.replace('</head>', `${injection}\n</head>`);
+} else {
+	// Fallback: inject before the first script tag
+	indexContent = indexContent.replace(/<script/, `${injection}\n<script`);
+}
 await fs.writeFile(paths.distPackageIndex, indexContent);
 
 // Patch web config
