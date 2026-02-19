@@ -536,6 +536,28 @@ window.addEventListener('message', function (msg) {
 				document.querySelector('.container').style.display = '';
 			}
 			break;
+		case 'enableFullscreen':
+			// Make the iframe element fullscreen from the parent side.
+			// NOTE: Titan OS apps already run fullscreen — this may be a no-op. Needs real TV testing.
+			if (contentFrame.requestFullscreen) {
+				contentFrame.requestFullscreen().catch(function(err) {
+					console.warn('Fullscreen request failed:', err);
+				});
+			} else if (contentFrame.webkitRequestFullscreen) {
+				contentFrame.webkitRequestFullscreen();
+			}
+			break;
+		case 'disableFullscreen':
+			if (document.fullscreenElement || document.webkitFullscreenElement) {
+				if (document.exitFullscreen) {
+					document.exitFullscreen().catch(function(err) {
+						console.warn('Exit fullscreen failed:', err);
+					});
+				} else if (document.webkitExitFullscreen) {
+					document.webkitExitFullscreen();
+				}
+			}
+			break;
 	}
 });
 

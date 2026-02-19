@@ -179,11 +179,17 @@ function handleMessageEvent(event: MessageEvent) {
 				console.log('Download requested:', data.url);
 			}
 			break;
-		case 'enableFullscreen':
-			postMessage('enableFullscreen');
+		case 'enableFullscreen': {
+			const elem = document.documentElement;
+			if (elem.requestFullscreen) {
+				elem.requestFullscreen().catch((err) => console.warn('Fullscreen request failed:', err));
+			}
 			break;
+		}
 		case 'disableFullscreen':
-			postMessage('disableFullscreen');
+			if (document.fullscreenElement) {
+				document.exitFullscreen().catch((err) => console.warn('Exit fullscreen failed:', err));
+			}
 			break;
 		case 'updateMediaSession':
 			// Media session update (for system media controls)
@@ -261,12 +267,19 @@ window.NativeShell = {
 		postMessage('downloadFile', { url });
 	},
 
+	// NOTE: Titan OS apps already run fullscreen in Chromium. The Fullscreen API
+	// may be a no-op or unsupported in the embedded TV browser. Needs real TV testing.
 	enableFullscreen() {
-		postMessage('enableFullscreen');
+		const elem = document.documentElement;
+		if (elem.requestFullscreen) {
+			elem.requestFullscreen().catch((err) => console.warn('Fullscreen request failed:', err));
+		}
 	},
 
 	disableFullscreen() {
-		postMessage('disableFullscreen');
+		if (document.fullscreenElement) {
+			document.exitFullscreen().catch((err) => console.warn('Exit fullscreen failed:', err));
+		}
 	},
 
 	openUrl(url: string, target?: string) {
