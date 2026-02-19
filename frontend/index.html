@@ -11,7 +11,7 @@
 	<meta name="title" content="Jellyfin for Titan OS" />
 	<meta name="description" content="Jellyfin client for Philips Titan OS Smart TVs" />
 	<!-- CSP for Titan OS - whitelist titanos.tv and Jellyfin servers -->
-	<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: http://* https://* *.titanos.tv; connect-src 'self' http://* https://*; media-src 'self' http://* https://* blob:; img-src 'self' data: http://* https://*;" />
+	<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: http://*:* https://*:* *.titanos.tv; connect-src 'self' http://*:* https://*:*; media-src 'self' http://*:* https://*:* blob:; img-src 'self' data: http://*:* https://*:*;" />
 	<title>Jellyfin for Titan OS</title>
 	<link rel="stylesheet" href="css/main.css" type="text/css"/>
 	<script src="js/ajax.js" charset="utf-8"></script>
@@ -62,7 +62,7 @@
 			</div>
 		</div>
 	</div>
-	<iframe id="contentFrame" style="display: none;" allowfullscreen allow="fullscreen"></iframe>
+	<iframe id="contentFrame" style="display: none;" allow="fullscreen"></iframe>
 </body>
 
 </html>
