@@ -107,19 +107,10 @@ function handleKeyDown(event: KeyboardEvent) {
 	}
 }
 
-// Handle back press with exit confirmation
-async function handleBackPress() {
+// Handle back press — delegate to parent which shows exit confirmation
+function handleBackPress() {
 	if (isExiting) return;
-
-	// For TitanOS, we need to handle exit differently
-	// The app can request to be closed via the platform
-	try {
-		// Try to use the app lifecycle API if available
-		// For now, just post the exit message back to the parent
-		postMessage('AppHost.exit');
-	} catch (e) {
-		console.error('Error handling back press:', e);
-	}
+	postMessage('AppHost.exit');
 }
 
 // Build device profile for video playback capabilities
@@ -161,11 +152,8 @@ function handleMessageEvent(event: MessageEvent) {
 			postMessage('selectServer');
 			break;
 		case 'AppHost.exit':
-			// Exit the app
 			isExiting = true;
-			// For TitanOS, we may need to call platform exit API
-			// For now, just log and let the platform handle it
-			console.log('App exit requested');
+			titanSDK.appLifecycle?.exit();
 			break;
 		case 'openUrl':
 			// Open external URL
@@ -316,7 +304,7 @@ window.NativeShell = {
 		exit: () => {
 			isExiting = true;
 			postMessage('AppHost.exit');
-			// In a real implementation, this would call the platform exit API
+			titanSDK.appLifecycle?.exit();
 		},
 
 		getDefaultLayout: () => 'tv',

@@ -48,6 +48,12 @@ function loadDeviceInfo() {
 		titanSDK.deviceInfo.getDeviceInfo().then(function(info) {
 			deviceInfo = info;
 			console.log('Device info loaded:', info);
+
+			// Update appInfo with real device data from SDK
+			if (info.Product) {
+				appInfo.deviceName = info.Product.platform || appInfo.deviceName;
+				appInfo.deviceId = info.Product.deviceID || appInfo.deviceId;
+			}
 		}).catch(function(err) {
 			console.error('Failed to get device info:', err);
 		});

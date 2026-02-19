@@ -70,7 +70,13 @@
         if (typeof getTitanSDK === 'function') {
             var titanSDK = getTitanSDK();
             if (titanSDK && titanSDK.isReady) {
-                titanSDK.isReady.then(function() {
+                var SDK_TIMEOUT = 10000;
+                Promise.race([
+                    titanSDK.isReady,
+                    new Promise(function(_, reject) {
+                        setTimeout(function() { reject(new Error('Titan SDK timed out')); }, SDK_TIMEOUT);
+                    })
+                ]).then(function() {
                     if (titanSDK.deviceInfo) {
                         titanSDK.deviceInfo.getDeviceInfo().then(function(info) {
                             deviceCapabilities = {
@@ -107,22 +113,18 @@
             },
 
             appName: function () {
-                postMessage('AppHost.appName', AppInfo.appName);
                 return AppInfo.appName;
             },
 
             appVersion: function () {
-                postMessage('AppHost.appVersion', AppInfo.appVersion);
                 return AppInfo.appVersion;
             },
 
             deviceId: function () {
-                postMessage('AppHost.deviceId', AppInfo.deviceId);
                 return AppInfo.deviceId;
             },
 
             deviceName: function () {
-                postMessage('AppHost.deviceName', AppInfo.deviceName);
                 return AppInfo.deviceName;
             },
 
@@ -138,27 +140,19 @@
             },
 
             getDefaultLayout: function () {
-                postMessage('AppHost.getDefaultLayout', 'tv');
                 return 'tv';
             },
 
             getDeviceProfile: function (profileBuilder) {
-                postMessage('AppHost.getDeviceProfile');
                 return profileBuilder(getDeviceProfile());
             },
 
             getSyncProfile: function (profileBuilder) {
-                postMessage('AppHost.getSyncProfile');
                 return profileBuilder({ enableMkvProgressive: false });
             },
 
             supports: function (command) {
-                var isSupported = command && SupportedFeatures.indexOf(command.toLowerCase()) != -1;
-                postMessage('AppHost.supports', {
-                    command: command,
-                    isSupported: isSupported
-                });
-                return isSupported;
+                return command && SupportedFeatures.indexOf(command.toLowerCase()) != -1;
             },
 
             screen: function () {
@@ -208,7 +202,6 @@
         },
 
         getPlugins: function () {
-            postMessage('getPlugins');
             return [];
         },
 
