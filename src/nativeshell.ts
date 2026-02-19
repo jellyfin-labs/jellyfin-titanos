@@ -1,6 +1,11 @@
 import { getTitanSDK, type TitanSDK } from '@titan-os/sdk';
+import { detectBrowser } from './config/browser';
 import { getDeviceInfo, type DeviceInfo, type TitanDeviceCapabilities } from './config/device';
 import { features } from './config/features';
+
+// Detect browser capabilities early (no SDK needed)
+const browser = detectBrowser();
+console.log(`Chrome ${browser.chromeMajor}, model year: ${browser.modelYear || 'unknown'}`);
 
 // Initialize Titan SDK
 const titanSDK = getTitanSDK();

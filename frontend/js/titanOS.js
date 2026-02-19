@@ -176,27 +176,22 @@
 
         // NOTE: Titan OS apps already run fullscreen in Chromium. The Fullscreen API
         // may be a no-op or unsupported in the embedded TV browser. Needs real TV testing.
+        // No webkit prefix needed — all Titan OS Chromium versions (84+) support unprefixed API.
         enableFullscreen: function () {
             var elem = document.documentElement;
             if (elem.requestFullscreen) {
                 elem.requestFullscreen().catch(function (err) {
                     console.warn('Fullscreen request failed:', err);
                 });
-            } else if (elem.webkitRequestFullscreen) {
-                elem.webkitRequestFullscreen();
             }
             postMessage('enableFullscreen');
         },
 
         disableFullscreen: function () {
-            if (document.fullscreenElement || document.webkitFullscreenElement) {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen().catch(function (err) {
-                        console.warn('Exit fullscreen failed:', err);
-                    });
-                } else if (document.webkitExitFullscreen) {
-                    document.webkitExitFullscreen();
-                }
+            if (document.fullscreenElement) {
+                document.exitFullscreen().catch(function (err) {
+                    console.warn('Exit fullscreen failed:', err);
+                });
             }
             postMessage('disableFullscreen');
         },

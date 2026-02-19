@@ -4,6 +4,14 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+// Detect Chromium version from user agent.
+// Titan OS versions: 2020-2022=Chrome 84, 2023-2024=Chrome 112, 2025-2026=Chromium 122.
+var chromeMajor = (function() {
+	var match = navigator.userAgent.match(/Chrome\/(\d+)/);
+	return match ? parseInt(match[1], 10) : 0;
+})();
+console.log('Detected Chrome ' + chromeMajor);
+
 var curr_req = false;
 var server_info = false;
 var manifest = false;
@@ -58,18 +66,6 @@ function loadDeviceInfo() {
 			console.error('Failed to get device info:', err);
 		});
 	}
-}
-
-// Polyfill for String.prototype.includes
-if (!String.prototype.includes) {
-	String.prototype.includes = function(search, start) {
-		'use strict';
-		if (search instanceof RegExp) {
-			throw TypeError('first argument must not be a RegExp');
-		}
-		if (start === undefined) { start = 0; }
-		return this.indexOf(search, start) !== -1;
-	};
 }
 
 function isVisible(element) {
@@ -587,19 +583,13 @@ window.addEventListener('message', function (msg) {
 				contentFrame.requestFullscreen().catch(function(err) {
 					console.warn('Fullscreen request failed:', err);
 				});
-			} else if (contentFrame.webkitRequestFullscreen) {
-				contentFrame.webkitRequestFullscreen();
 			}
 			break;
 		case 'disableFullscreen':
-			if (document.fullscreenElement || document.webkitFullscreenElement) {
-				if (document.exitFullscreen) {
-					document.exitFullscreen().catch(function(err) {
-						console.warn('Exit fullscreen failed:', err);
-					});
-				} else if (document.webkitExitFullscreen) {
-					document.webkitExitFullscreen();
-				}
+			if (document.fullscreenElement) {
+				document.exitFullscreen().catch(function(err) {
+					console.warn('Exit fullscreen failed:', err);
+				});
 			}
 			break;
 	}
