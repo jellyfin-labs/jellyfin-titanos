@@ -112,12 +112,58 @@ function rightArrowPressed() {
 }
 
 function backPressed() {
-	// Handle back button - exit confirmation handled by NativeShell
-	window.NativeShell?.AppHost?.exit();
+	showExitDialog();
+}
+
+function showExitDialog() {
+	var dialog = document.getElementById('exitDialog');
+	if (dialog.style.display !== 'none') return;
+	dialog.style.display = '';
+	document.getElementById('exitCancel').focus();
+
+	document.getElementById('exitCancel').onclick = function() {
+		hideExitDialog();
+	};
+	document.getElementById('exitConfirm').onclick = function() {
+		hideExitDialog();
+		exitApp();
+	};
+}
+
+function hideExitDialog() {
+	document.getElementById('exitDialog').style.display = 'none';
+	navigationInit();
+}
+
+function exitApp() {
+	if (titanSDK && titanSDK.appLifecycle) {
+		titanSDK.appLifecycle.exit();
+	} else {
+		window.close();
+	}
 }
 
 document.onkeydown = function (evt) {
 	evt = evt || window.event;
+
+	// If exit dialog is visible, handle its own navigation
+	var exitDialog = document.getElementById('exitDialog');
+	if (exitDialog && exitDialog.style.display !== 'none') {
+		switch (evt.keyCode) {
+			case 8: // Back (Philips)
+			case 461: // Back (JVC)
+			case 27: // Exit
+				hideExitDialog();
+				break;
+			case 13: // OK/Enter — activate focused button
+				if (document.activeElement && document.activeElement.tagName === 'BUTTON') {
+					document.activeElement.click();
+				}
+				break;
+		}
+		return;
+	}
+
 	switch (evt.keyCode) {
 		case 37:
 			leftArrowPressed();
@@ -526,15 +572,7 @@ window.addEventListener('message', function (msg) {
 			contentFrame.src = '';
 			break;
 		case 'AppHost.exit':
-			// Handle exit - for TitanOS, we may need to use platform API
-			if (titanSDK && titanSDK.appLifecycle) {
-				titanSDK.appLifecycle.exit();
-			} else {
-				// Fallback: close the iframe content and show server selection
-				contentFrame.style.display = 'none';
-				contentFrame.src = '';
-				document.querySelector('.container').style.display = '';
-			}
+			showExitDialog();
 			break;
 		case 'enableFullscreen':
 			// Make the iframe element fullscreen from the parent side.

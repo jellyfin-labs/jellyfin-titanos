@@ -52,6 +52,16 @@
 			<button id="abort" onclick="abort();">Abort</button>
 		</div>
 	</div>
+	<div id="exitDialog" style="display: none;">
+		<div class="exit-dialog-box">
+			<h2>Exit Jellyfin?</h2>
+			<p>Are you sure you want to exit the app?</p>
+			<div class="exit-dialog-buttons">
+				<button id="exitCancel" type="button" tabindex="0">Cancel</button>
+				<button id="exitConfirm" type="button" tabindex="1">Exit</button>
+			</div>
+		</div>
+	</div>
 	<iframe id="contentFrame" style="display: none;" allowfullscreen allow="fullscreen"></iframe>
 </body>
 
