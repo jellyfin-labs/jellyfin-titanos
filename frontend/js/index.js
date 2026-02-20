@@ -400,31 +400,17 @@ function lruStrategy(old_items, max_items, new_item) {
 }
 
 function handleSuccessManifest(data, baseurl) {
-	if (data.start_url.includes("/web")) {
-		var hosturl = normalizeUrl(baseurl + "/" + data.start_url);
-	} else {
-		var hosturl = normalizeUrl(baseurl + "/web/" + data.start_url);
-	}
-
 	curr_req = false;
 
 	for (var server_id in connected_servers) {
 		var info = connected_servers[server_id];
 		if (info['baseurl'] == baseurl) {
-			info['hosturl'] = hosturl;
 			info['Address'] = info['Address'] || baseurl;
 			storage.set('connected_servers', connected_servers);
 			console.log("handleSuccessManifest modified server");
 			console.log(info);
 
-			getTextToInject(function (bundle) {
-				handoff(hosturl, bundle);
-			}, function (error) {
-				console.error(error);
-				displayError(error);
-				hideConnecting();
-				curr_req = false;
-			});
+			handoff(baseurl);
 			return;
 		}
 	}
@@ -465,99 +451,37 @@ function abort() {
 	console.log("Aborting...");
 }
 
-function loadUrl(url, success, failure) {
-	var xhr = new XMLHttpRequest();
-	xhr.open('GET', url);
-	xhr.onload = function () {
-		success(xhr.responseText);
-	};
-	xhr.onerror = function () {
-		failure("Failed to load '" + url + "'");
-	};
-	xhr.send();
-}
-
-function getTextToInject(success, failure) {
-	var bundle = {};
-	var urls = ['js/titanOS.js', 'css/titanOS.css'];
-	var looper = function (idx) {
-		if (idx >= urls.length) {
-			success(bundle);
-		} else {
-			var url = urls[idx];
-			var ext = url.split('.').pop();
-			loadUrl(url, function (data) {
-				bundle[ext] = (bundle[ext] || '') + data;
-				looper(idx + 1);
-			}, failure);
-		}
-	};
-	looper(0);
-}
-
-function injectScriptText(document, text) {
-	var script = document.createElement('script');
-	script.type = 'text/javascript';
-	script.innerHTML = text;
-	document.head.appendChild(script);
-}
-
-function injectStyleText(document, text) {
-	var style = document.createElement('style');
-	style.innerHTML = text;
-	document.body.appendChild(style);
-}
-
-function handoff(url, bundle) {
-	console.log("Handoff called with: ", url);
+function handoff(serverUrl) {
+	console.log("Handoff: loading local jellyfin-web, server API at:", serverUrl);
 	stopDiscovery();
 	document.querySelector('.container').style.display = 'none';
 
+	// Store server URL for nativeshell's config.json interceptor.
+	// The nativeshell injects this into config.json's "servers" array so jellyfin-web
+	// connects to the right Jellyfin server instead of window.location.origin.
+	localStorage.setItem('jellyfin_server_url', serverUrl);
+
+	// Also pre-seed jellyfin-web credentials in localStorage.
+	// Since parent and iframe are same-origin, they share localStorage.
+	var credentials = JSON.parse(localStorage.getItem('jellyfin_credentials') || '{"Servers":[]}');
+	var serverExists = credentials.Servers.some(function(s) {
+		return s.ManualAddress === serverUrl;
+	});
+	if (!serverExists) {
+		credentials.Servers.unshift({
+			ManualAddress: serverUrl,
+			LastConnectionMode: 2 // Manual
+		});
+	}
+	localStorage.setItem('jellyfin_credentials', JSON.stringify(credentials));
+
 	var contentFrame = document.querySelector('#contentFrame');
-	var contentWindow = contentFrame.contentWindow;
-
-	var timer;
-
-	function onLoad() {
-		clearInterval(timer);
-		contentFrame.contentDocument.removeEventListener('DOMContentLoaded', onLoad);
-		contentFrame.removeEventListener('load', onLoad);
-
-		// Inject app info for NativeShell
-		injectScriptText(contentFrame.contentDocument, 'window.AppInfo = ' + JSON.stringify(appInfo) + ';');
-		injectScriptText(contentFrame.contentDocument, 'window.DeviceInfo = ' + JSON.stringify(deviceInfo) + ';');
-
-		// Inject TitanOS-specific adapter
-		if (bundle.js) {
-			injectScriptText(contentFrame.contentDocument, bundle.js);
-		}
-
-		if (bundle.css) {
-			injectStyleText(contentFrame.contentDocument, bundle.css);
-		}
-	}
-
-	function onUnload() {
-		contentWindow.removeEventListener('unload', onUnload);
-		timer = setInterval(function () {
-			var contentDocument = contentFrame.contentDocument;
-			switch (contentDocument.readyState) {
-				case 'loading':
-					clearInterval(timer);
-					contentDocument.addEventListener('DOMContentLoaded', onLoad);
-					break;
-				case 'interactive':
-					onLoad();
-					break;
-			}
-		}, 0);
-	}
-
-	contentWindow.addEventListener('unload', onUnload);
-	contentFrame.addEventListener('load', onLoad);
-
 	contentFrame.style.display = '';
-	contentFrame.src = url;
+	// Load LOCAL jellyfin-web (same-origin, has jellyfin-titanos.js nativeshell injected via package.ts).
+	// The nativeshell defines window.NativeShell before jellyfin-web initializes.
+	// No runtime injection needed — everything is already in the HTML.
+	// app.html is the patched jellyfin-web index at the root (same level as JS/CSS chunks).
+	contentFrame.src = 'app.html';
 }
 
 window.addEventListener('message', function (msg) {
@@ -595,45 +519,12 @@ window.addEventListener('message', function (msg) {
 	}
 });
 
-function renderServerList(server_list) {
-	for (var server_id in server_list) {
-		var server = server_list[server_id];
-		renderSingleServer(server_id, server);
-	}
+function renderServerList() {
+	// Server list UI removed — we only use the manual URL input field.
 }
 
-function renderSingleServer(server_id, server) {
-	var server_list = document.getElementById("serverlist");
-	var server_card = document.getElementById("server_" + server_id);
-
-	if (!server_card) {
-		server_card = document.createElement("li");
-		server_card.id = "server_" + server_id;
-		server_card.className = 'server_card';
-		server_list.appendChild(server_card);
-	}
-	server_card.innerHTML = "";
-
-	var title = document.createElement("div");
-	title.className = 'server_card_title';
-	title.innerText = server.Name;
-	server_card.appendChild(title);
-
-	var server_url = document.createElement("div");
-	server_url.className = 'server_card_url';
-	server_url.innerText = server.Address;
-	server_card.appendChild(server_url);
-
-	var btn = document.createElement("button");
-	btn.innerText = "Connect";
-	btn.type = "button";
-	btn.value = server.Address;
-	btn.onclick = function () {
-		var urlfield = document.getElementById("baseurl");
-		urlfield.value = this.value;
-		handleServerSelect();
-	};
-	server_card.appendChild(btn);
+function renderSingleServer() {
+	// Server list UI removed — we only use the manual URL input field.
 }
 
 var servers_verifying = {};

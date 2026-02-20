@@ -8,7 +8,6 @@ export const features = [
 	'externallinks',
 	'htmlaudioautoplay',
 	'htmlvideoautoplay',
-	'multiserver',
 	'remoteaudio',
 	'remotecontrol',
 	'remotevideo',

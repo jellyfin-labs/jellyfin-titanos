@@ -7,14 +7,83 @@ import { features } from './config/features';
 const browser = detectBrowser();
 console.log(`Chrome ${browser.chromeMajor}, model year: ${browser.modelYear || 'unknown'}`);
 
-// Initialize Titan SDK
-const titanSDK = getTitanSDK();
-console.log(`Using Titan OS SDK version ${titanSDK.VERSION}`);
+// Initialize Titan SDK (may be null in dev environments)
+let titanSDK: TitanSDK | null = null;
+try {
+	titanSDK = getTitanSDK();
+	if (titanSDK) {
+		console.log(`Using Titan OS SDK version ${titanSDK.VERSION}`);
+	}
+} catch (e) {
+	console.warn('Titan SDK not available (dev mode):', e);
+}
 
-// Global state
-let deviceInfo: DeviceInfo;
+// Global state — defaults for when SDK is unavailable
+let deviceInfo: DeviceInfo = {
+	deviceId: '',
+	deviceName: 'Titan OS TV',
+	appName: 'Jellyfin for Titan OS',
+	appVersion: '0.0.0',
+	platform: 'TitanOS',
+	year: 'unknown',
+	firmwareVersion: 'unknown',
+};
 let deviceCapabilities: TitanDeviceCapabilities;
 let isExiting = false;
+
+// Generate or retrieve a persistent device ID (shared with parent via localStorage)
+function getDeviceId(): string {
+	let id = localStorage.getItem('_deviceId2');
+	if (!id) {
+		id = btoa([navigator.userAgent, Date.now()].join('|')).replace(/=/g, '1');
+		localStorage.setItem('_deviceId2', id);
+	}
+	return id;
+}
+
+// Set fallback device ID immediately so NativeShell.AppHost.deviceId() never returns empty
+deviceInfo.deviceId = getDeviceId();
+
+// Intercept config.json loading to inject the Jellyfin server URL.
+// jellyfin-web uses config.json "servers" array to determine which server to connect to.
+// Without this, it falls back to window.location.origin (our hosting server, not the Jellyfin server).
+// jellyfin-web loads config.json via XMLHttpRequest (fetchLocal.ts), not fetch, so we intercept XHR.
+// We wrap the onload handler (not addEventListener) to modify responseText BEFORE fetchLocal reads it.
+const _XHROpen = XMLHttpRequest.prototype.open;
+const _XHRSend = XMLHttpRequest.prototype.send;
+
+XMLHttpRequest.prototype.open = function (method: string, url: string | URL, ...args: unknown[]) {
+	const urlStr = typeof url === 'string' ? url : url.toString();
+	(this as XMLHttpRequest & { _isConfigJson?: boolean })._isConfigJson =
+		urlStr.endsWith('config.json') || urlStr.includes('config.json?');
+	return _XHROpen.call(this, method, url, ...args);
+};
+
+XMLHttpRequest.prototype.send = function (...args: unknown[]) {
+	if ((this as XMLHttpRequest & { _isConfigJson?: boolean })._isConfigJson) {
+		// Wrap onload so we modify responseText BEFORE the original handler reads it.
+		// fetchLocal sets xhr.onload before calling send(), so we capture and wrap it here.
+		const origOnload = this.onload;
+		this.onload = function (event) {
+			const serverUrl = localStorage.getItem('jellyfin_server_url');
+			if (serverUrl) {
+				try {
+					const config = JSON.parse(this.responseText);
+					config.servers = [serverUrl];
+					Object.defineProperty(this, 'responseText', {
+						value: JSON.stringify(config),
+						configurable: true,
+					});
+					console.log('Injected server URL into config.json:', serverUrl);
+				} catch (e) {
+					console.warn('Failed to patch config.json response:', e);
+				}
+			}
+			if (origOnload) origOnload.call(this, event);
+		};
+	}
+	return _XHRSend.call(this, ...args);
+};
 
 // Post message to the parent (jellyfin-web runs in iframe)
 function postMessage(type: string, data?: unknown) {
@@ -158,7 +227,7 @@ function handleMessageEvent(event: MessageEvent) {
 			break;
 		case 'AppHost.exit':
 			isExiting = true;
-			titanSDK.appLifecycle?.exit();
+			titanSDK?.appLifecycle?.exit();
 			break;
 		case 'openUrl':
 			// Open external URL
@@ -197,34 +266,41 @@ function handleMessageEvent(event: MessageEvent) {
 // Initialize the native shell
 async function init() {
 	try {
-		// Wait for SDK to be ready, with a timeout to prevent infinite hangs
-		const SDK_TIMEOUT = 10000;
-		await Promise.race([
-			titanSDK.isReady,
-			new Promise<never>((_, reject) =>
-				setTimeout(() => reject(new Error(`Titan SDK initialization timed out after ${SDK_TIMEOUT}ms`)), SDK_TIMEOUT)
-			),
-		]);
-		console.log('Titan SDK is ready');
+		if (titanSDK) {
+			// Wait for SDK to be ready, with a timeout to prevent infinite hangs
+			const SDK_TIMEOUT = 10000;
+			await Promise.race([
+				titanSDK.isReady,
+				new Promise<never>((_, reject) =>
+					setTimeout(() => reject(new Error(`Titan SDK initialization timed out after ${SDK_TIMEOUT}ms`)), SDK_TIMEOUT)
+				),
+			]);
+			console.log('Titan SDK is ready');
 
-		// Get device info and capabilities
-		deviceInfo = await getDeviceInfo(titanSDK);
-		console.log('Device info:', deviceInfo);
+			// Get device info and capabilities from SDK
+			deviceInfo = await getDeviceInfo(titanSDK);
+			// Ensure deviceId falls back to localStorage-generated ID
+			if (!deviceInfo.deviceId || deviceInfo.deviceId === 'unknown') {
+				deviceInfo.deviceId = getDeviceId();
+			}
+			console.log('Device info:', deviceInfo);
 
-		// Get device capabilities from SDK
-		const nativeInfo = await titanSDK.deviceInfo.getDeviceInfo();
-		deviceCapabilities = {
-			supportDolbyAtmos: nativeInfo.Capability?.supportDolbyAtmos,
-			supportHDR_DV: nativeInfo.Capability?.supportHDR_DV,
-			supportHDR_HDR10: nativeInfo.Capability?.supportHDR_HDR10,
-			supportHDR: nativeInfo.Capability?.supportHDR,
-			supportPlayready: nativeInfo.Capability?.supportPlayready,
-			supportWidevineModular: nativeInfo.Capability?.supportWidevineModular,
-			supportMPEG_DASH: nativeInfo.Capability?.supportMPEG_DASH,
-			supportAppleHLS: nativeInfo.Capability?.supportAppleHLS,
-			supportMSSmoothStreaming: nativeInfo.Capability?.supportMSSmoothStreaming,
-		};
-		console.log('Device capabilities:', deviceCapabilities);
+			const nativeInfo = await titanSDK.deviceInfo.getDeviceInfo();
+			deviceCapabilities = {
+				supportDolbyAtmos: nativeInfo.Capability?.supportDolbyAtmos,
+				supportHDR_DV: nativeInfo.Capability?.supportHDR_DV,
+				supportHDR_HDR10: nativeInfo.Capability?.supportHDR_HDR10,
+				supportHDR: nativeInfo.Capability?.supportHDR,
+				supportPlayready: nativeInfo.Capability?.supportPlayready,
+				supportWidevineModular: nativeInfo.Capability?.supportWidevineModular,
+				supportMPEG_DASH: nativeInfo.Capability?.supportMPEG_DASH,
+				supportAppleHLS: nativeInfo.Capability?.supportAppleHLS,
+				supportMSSmoothStreaming: nativeInfo.Capability?.supportMSSmoothStreaming,
+			};
+			console.log('Device capabilities:', deviceCapabilities);
+		} else {
+			console.warn('Running without Titan SDK — using default device info');
+		}
 
 		// Set up keyboard event listener for remote control
 		document.addEventListener('keydown', handleKeyDown);
@@ -232,7 +308,7 @@ async function init() {
 		// Set up message listener for communication from jellyfin-web
 		window.addEventListener('message', handleMessageEvent);
 
-		// Notify the parent (jellyfin-web) that we're initialized
+		// Notify the parent that we're initialized
 		postMessage('AppHost.init', {
 			deviceId: deviceInfo.deviceId,
 			deviceName: deviceInfo.deviceName,
@@ -309,16 +385,20 @@ window.NativeShell = {
 		exit: () => {
 			isExiting = true;
 			postMessage('AppHost.exit');
-			titanSDK.appLifecycle?.exit();
+			titanSDK?.appLifecycle?.exit();
 		},
 
 		getDefaultLayout: () => 'tv',
 
-		getDeviceProfile: () => getDeviceProfile(),
+		getDeviceProfile: (profileBuilder?: (profile: Record<string, unknown>) => unknown) => {
+			const profile = getDeviceProfile();
+			return profileBuilder ? profileBuilder(profile) : profile;
+		},
 
-		getSyncProfile: () => ({
-			enableMkvProgressive: false,
-		}),
+		getSyncProfile: (profileBuilder?: (profile: Record<string, unknown>) => unknown) => {
+			const profile = { enableMkvProgressive: false };
+			return profileBuilder ? profileBuilder(profile) : profile;
+		},
 
 		supports: (command: string) => {
 			return command && features.includes(command.toLowerCase());

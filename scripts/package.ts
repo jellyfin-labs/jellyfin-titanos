@@ -17,15 +17,17 @@ await fs.cp(paths.distNativeshell, paths.distPackage, { recursive: true });
 // This ensures the nativeshell script is present when jellyfin-web loads in the iframe,
 // but NOT in the parent page (frontend's index.html replaces it next).
 let webIndexContent = await fs.readFile(paths.distPackageIndex).then(buffer => buffer.toString());
-const injection = `<script src="jellyfin-titanos.js" defer></script>`;
-if (webIndexContent.includes('</head>')) {
-	webIndexContent = webIndexContent.replace('</head>', `${injection}\n</head>`);
-} else {
-	webIndexContent = webIndexContent.replace(/<script/, `${injection}\n<script`);
-}
-// Save as web/index.html so the iframe can load it locally
-await fs.mkdir(path.join(paths.distPackage, 'web'), { recursive: true });
-await fs.writeFile(path.join(paths.distPackage, 'web', 'index.html'), webIndexContent);
+// Inject nativeshell BEFORE jellyfin-web's scripts so it runs first in the defer queue.
+// All jellyfin-web scripts use defer, and defer scripts execute in document order.
+// Our script must set window.NativeShell before jellyfin-web's main bundle initializes.
+const scriptInjection = `<script src="jellyfin-titanos.js" defer></script>`;
+const cssInjection = `<link rel="stylesheet" href="css/titanOS.css" />`;
+const injection = `${scriptInjection}\n${cssInjection}`;
+webIndexContent = webIndexContent.replace(/<script/, `${injection}\n<script`);
+// Save as app.html at the root (same level as JS/CSS chunks, no subdirectory needed).
+// The frontend's iframe loads this file. Using a different name avoids collision with
+// the frontend's index.html which gets copied next.
+await fs.writeFile(path.join(paths.distPackage, 'app.html'), webIndexContent);
 
 // Add TitanOS frontend files (entry point, styles)
 // This overwrites the root index.html with the frontend's server selection page
