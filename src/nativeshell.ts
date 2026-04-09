@@ -30,5 +30,12 @@ window.NativeShell = {
 		deviceName: () => deviceInfo?.deviceName,
 		appName: () => deviceInfo?.appName,
 		appVersion: () => deviceInfo?.appVersion,
+
+		getDeviceProfile: function (profileBuilder: (options: any) => any) {
+			return profileBuilder({ 
+				supportsHdr10: deviceInfo?.nativeInfo.Capability.supportHDR_HDR10, 
+				supportsDolbyVision: deviceInfo?.nativeInfo.Capability.supportHDR_DV,
+			});
+		},
 	},
 };

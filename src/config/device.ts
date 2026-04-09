@@ -1,10 +1,11 @@
-import type { TitanSDK } from '@titan-os/sdk';
+import type { TitanSDK, DeviceInfo as NativeDeviceInfo } from '@titan-os/sdk';
 
 export interface DeviceInfo {
 	deviceId: string;
 	deviceName: string;
 	appName: string;
 	appVersion: string;
+	nativeInfo: NativeDeviceInfo;
 }
 
 export async function getDeviceInfo(titanSDK: TitanSDK): Promise<DeviceInfo> {
@@ -15,5 +16,6 @@ export async function getDeviceInfo(titanSDK: TitanSDK): Promise<DeviceInfo> {
 		deviceName: nativeInfo.Product.platform,
 		appName: 'Jellyfin for Titan OS',
 		appVersion: import.meta.env.VERSION_NAME || 'Unknown',
+		nativeInfo: nativeInfo,
 	};
 }
