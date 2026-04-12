@@ -1,0 +1,45 @@
+name: Update jellyfin-web Submodule
+
+on:
+  schedule:
+    - cron: '0 6 * * *'  # Runs at 6am every day
+  workflow_dispatch:
+
+jobs:
+  update:
+    name: Update jellyfin-web submodule
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get latest jellyfin-web release
+        id: latest
+        run: |
+          TAG=$(gh release view --repo jellyfin/jellyfin-web --json tagName -q .tagName)
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Update submodule to ${{ steps.latest.outputs.tag }}
+        run: |
+          git submodule update --init jellyfin-web
+          cd jellyfin-web
+          git fetch --depth=1 origin ${{ steps.latest.outputs.tag }}
+          git checkout FETCH_HEAD
+          cd ..
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v8
+        with:
+          commit-message: "Update jellyfin-web submodule to ${{ steps.latest.outputs.tag }}"
+          title: "Update jellyfin-web submodule to ${{ steps.latest.outputs.tag }}"
+          body: |
+            Automated update of the `jellyfin-web` submodule to [`${{ steps.latest.outputs.tag }}`](https://github.com/jellyfin/jellyfin-web/releases/tag/${{ steps.latest.outputs.tag }}).
+          branch: update/jellyfin-web-${{ steps.latest.outputs.tag }}
+          delete-branch: true
+          labels: dependencies
