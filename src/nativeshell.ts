@@ -30,5 +30,8 @@ window.NativeShell = {
 		deviceName: () => deviceInfo?.deviceName,
 		appName: () => deviceInfo?.appName,
 		appVersion: () => deviceInfo?.appVersion,
+
+		// Return default device profile without modifications
+		getDeviceProfile: (profileBuilder: () => any) => profileBuilder(),
 	},
 };
