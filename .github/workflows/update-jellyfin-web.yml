@@ -1,0 +1,50 @@
+name: Update jellyfin-web 🌍
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+on:
+  schedule:
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+
+jobs:
+  main:
+    name: Update jellyfin-web submodule
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Check out Git repository 🔎
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Find latest jellyfin-web release 🏷️
+        id: latest
+        run: |
+          TAG=$(gh release view --repo jellyfin/jellyfin-web --json tagName -q .tagName)
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Update submodule to ${{ steps.latest.outputs.tag }} 🆙
+        run: |
+          git submodule update --init --depth 1 jellyfin-web
+          cd jellyfin-web
+          git fetch --depth=1 origin tag ${{ steps.latest.outputs.tag }}
+          git checkout FETCH_HEAD
+          cd ..
+
+      - name: Create pull request 🏗️
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          token: ${{ secrets.JF_BOT_TOKEN }}
+          commit-message: "Update jellyfin-web to ${{ steps.latest.outputs.tag }}"
+          committer: "jellyfin-bot <team@jellyfin.org>"
+          author: "jellyfin-bot <team@jellyfin.org>"
+          title: "Update jellyfin-web to ${{ steps.latest.outputs.tag }}"
+          body: "Update jellyfin-web to [`${{ steps.latest.outputs.tag }}`](https://github.com/jellyfin/jellyfin-web/releases/tag/${{ steps.latest.outputs.tag }})"
+          branch: "ci/jellyfin-web-${{ steps.latest.outputs.tag }}"
+          delete-branch: true
+          labels: dependencies
