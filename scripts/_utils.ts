@@ -19,7 +19,7 @@ export async function exec(cmd: string, ...params: string[]): Promise<void> {
 
 	try {
 		await new Promise<void>((resolve, reject) => {
-			const childProcess = spawn(cmd, params, { stdio: 'inherit' });
+			const childProcess = spawn(cmd, params, { stdio: 'inherit', shell: true });
 
 			childProcess.on('error', (err) => reject(err));
 
