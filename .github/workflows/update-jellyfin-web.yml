@@ -30,7 +30,7 @@ jobs:
 
       - name: Update submodule to ${{ steps.latest.outputs.tag }} 🆙
         run: |
-          git submodule update --init jellyfin-web
+          git submodule update --init --depth 1 jellyfin-web
           cd jellyfin-web
           git fetch --depth=1 origin tag ${{ steps.latest.outputs.tag }}
           git checkout FETCH_HEAD
