@@ -13,8 +13,6 @@ jobs:
   main:
     name: Update jellyfin-web submodule
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
 
     steps:
       - name: Check out Git repository 🔎
@@ -40,7 +38,7 @@ jobs:
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           token: ${{ secrets.JF_BOT_TOKEN }}
-          commit-message: "Update jellyfin-web submodule to ${{ steps.latest.outputs.tag }}"
+          commit-message: "Update jellyfin-web to ${{ steps.latest.outputs.tag }}"
           committer: "jellyfin-bot <team@jellyfin.org>"
           author: "jellyfin-bot <team@jellyfin.org>"
           title: "Update jellyfin-web to ${{ steps.latest.outputs.tag }}"
