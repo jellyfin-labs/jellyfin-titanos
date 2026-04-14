@@ -13,6 +13,8 @@ jobs:
   main:
     name: Update jellyfin-web submodule
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: Check out Git repository 🔎
