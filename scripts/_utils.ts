@@ -21,9 +21,9 @@ export async function exec(cmd: string, ...params: string[]): Promise<void> {
 		await new Promise<void>((resolve, reject) => {
 			const childProcess = spawn(cmd, params, { stdio: 'inherit', shell: true });
 
-			childProcess.on('error', (err) => reject(err));
+			childProcess.on('error', err => reject(err));
 
-			childProcess.on('exit', (code) => {
+			childProcess.on('exit', code => {
 				if (code === 0) resolve();
 				else reject(new Error(`Command exited with code ${code}`));
 			});

@@ -8,9 +8,7 @@ export interface DeviceCapabilities {
 	supportsDolbyVision: boolean;
 }
 
-export async function getDeviceCapabilities(
-	titanSDK: TitanSDK,
-): Promise<DeviceCapabilities> {
+export async function getDeviceCapabilities(titanSDK: TitanSDK): Promise<DeviceCapabilities> {
 	const nativeInfo = await titanSDK.deviceInfo.getDeviceInfo();
 
 	return {
