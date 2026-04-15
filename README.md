@@ -5,11 +5,11 @@
 
 <img alt="Logo Banner" src="https://raw.githubusercontent.com/jellyfin/jellyfin-ux/master/branding/SVG/banner-logo-solid.svg?sanitize=true"/>
 
-Jellyfin for Titan OS is the official Jellyfin client for devices using [Titan OS](https://www.titanos.tv/). The client is a combination of [jellyfin-web](https://github.com/jellyfin/jellyfin-web) with a custom native shell implementation.
+Jellyfin for Titan OS is the official Jellyfin client for devices using [Titan OS](https://www.titanos.tv). The client is a combination of [jellyfin-web](https://github.com/jellyfin/jellyfin-web) with a custom native shell implementation.
 
 ## Repository structure
 
-```
+```txt
 .
 ├── scripts/      Scripting to build and manage this project
 ├── src/          Source code for the native shell implementation
@@ -25,7 +25,7 @@ This repository uses a git submodule and requires Node.js and NPM and exposes va
 npm run update:web [version]
 ```
 
-Update the git submodule to a specific version of jellyfin-web.
+Update the git submodule to a specific version of jellyfin-web. Note that this is only used for testing locally, pull requests are opened automatically to bump the submodule to newer versions.
 
 ### Build Jellyfin web
 
