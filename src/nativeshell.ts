@@ -1,7 +1,10 @@
 import { getTitanSDK } from '@titan-os/sdk';
 import { getDeviceInfo, type DeviceInfo } from './config/device';
 import { features } from './config/features';
-import { getDeviceCapabilities, type DeviceCapabilities } from './config/capabilities';
+import {
+	getDeviceCapabilities,
+	type DeviceCapabilities,
+} from './config/capabilities';
 
 const titanSDK = getTitanSDK();
 console.log(`Using Titan OS SDK version ${titanSDK.VERSION}`);
@@ -20,11 +23,14 @@ window.NativeShell = {
 			// Wait for SDK to be ready for use
 			await titanSDK.isReady;
 
-			// Get device info
-			deviceInfo = await getDeviceInfo(titanSDK);
-			deviceCapabilities = await getDeviceCapabilities(titanSDK);
+			// Get device info & capabilities
+			[deviceInfo, deviceCapabilities] = await Promise.all([
+				getDeviceInfo(titanSDK),
+				getDeviceCapabilities(titanSDK),
+			]);
 
-			console.log('Retrieved device info', deviceInfo);
+			console.log('Device info', deviceInfo);
+			console.log('Device capabilities', deviceCapabilities);
 		},
 
 		getDefaultLayout: () => 'tv',
@@ -35,6 +41,7 @@ window.NativeShell = {
 		appName: () => deviceInfo?.appName,
 		appVersion: () => deviceInfo?.appVersion,
 
-		getDeviceProfile: (profileBuilder: (options: any) => any) => profileBuilder(deviceCapabilities),
+		getDeviceProfile: (profileBuilder: (options: any) => any) =>
+			profileBuilder(deviceCapabilities),
 	},
 };
