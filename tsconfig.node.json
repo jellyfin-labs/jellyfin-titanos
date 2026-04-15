@@ -1,10 +1,7 @@
 {
-	"extends": [
-		"@tsconfig/node-lts/tsconfig.json",
-		"@tsconfig/node-ts/tsconfig.json"
-	],
+	"extends": ["@tsconfig/node-lts/tsconfig.json", "@tsconfig/node-ts/tsconfig.json"],
 	"compilerOptions": {
 		"types": ["node"]
 	},
-	"include": ["./scripts/*.ts"]
+	"include": ["./scripts/*.ts", "rolldown.config.ts"]
 }
