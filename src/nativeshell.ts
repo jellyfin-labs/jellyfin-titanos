@@ -1,12 +1,14 @@
 import { getTitanSDK } from '@titan-os/sdk';
 import { getDeviceInfo, type DeviceInfo } from './config/device';
 import { features } from './config/features';
+import { getDeviceCapabilities, type DeviceCapabilities } from './config/capabilities';
 
 const titanSDK = getTitanSDK();
 console.log(`Using Titan OS SDK version ${titanSDK.VERSION}`);
 
 // Lazily loaded from AppHost.init()
 let deviceInfo: DeviceInfo;
+let deviceCapabilities: DeviceCapabilities;
 
 window.NativeShell = {
 	getPlugins() {
@@ -20,6 +22,8 @@ window.NativeShell = {
 
 			// Get device info
 			deviceInfo = await getDeviceInfo(titanSDK);
+			deviceCapabilities = await getDeviceCapabilities(titanSDK);
+
 			console.log('Retrieved device info', deviceInfo);
 		},
 
@@ -31,7 +35,6 @@ window.NativeShell = {
 		appName: () => deviceInfo?.appName,
 		appVersion: () => deviceInfo?.appVersion,
 
-		// Return default device profile without modifications
-		getDeviceProfile: (profileBuilder: () => any) => profileBuilder(),
+		getDeviceProfile: (profileBuilder: (options: any) => any) => profileBuilder(deviceCapabilities),
 	},
 };
