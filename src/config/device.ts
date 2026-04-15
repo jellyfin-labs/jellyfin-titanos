@@ -1,4 +1,4 @@
-import type { TitanSDK, DeviceInfo as NativeDeviceInfo } from '@titan-os/sdk';
+import type { TitanSDK } from '@titan-os/sdk';
 
 export interface DeviceInfo {
 	deviceId: string;
@@ -7,7 +7,9 @@ export interface DeviceInfo {
 	appVersion: string;
 }
 
-export function getDeviceInfo(nativeInfo: NativeDeviceInfo): DeviceInfo {
+export async function getDeviceInfo(titanSDK: TitanSDK): Promise<DeviceInfo> {
+	const nativeInfo = await titanSDK.deviceInfo.getDeviceInfo();
+
 	return {
 		deviceId: nativeInfo.Product.deviceID,
 		deviceName: nativeInfo.Product.platform,

@@ -19,11 +19,10 @@ window.NativeShell = {
 		init: async () => {
 			// Wait for SDK to be ready for use
 			await titanSDK.isReady;
-			const nativeInfo = await titanSDK.deviceInfo.getDeviceInfo();
 
 			// Get device info
-			deviceInfo = getDeviceInfo(nativeInfo);
-			deviceCapabilities = getDeviceCapabilities(nativeInfo);
+			deviceInfo = await getDeviceInfo(titanSDK);
+			deviceCapabilities = await getDeviceCapabilities(titanSDK);
 
 			console.log('Retrieved device info', deviceInfo);
 		},
