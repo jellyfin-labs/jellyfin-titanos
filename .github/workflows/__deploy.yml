@@ -40,4 +40,4 @@ jobs:
         env:
           TARGET_PATH: /srv/titanos/${{ inputs.environment }}/
           SOURCE_PATH: dist/package/
-        run: rsync -vrptz -e "ssh -v -i ~/.ssh/id_rsa" "$SOURCE_PATH" "${{ secrets.DEPLOY_APPS_USER }}@${{ secrets.DEPLOY_APPS_HOST }}:$TARGET_PATH"
+        run: rsync -vrptz -e "ssh -T -i ~/.ssh/id_rsa -o IdentitiesOnly=yes" "$SOURCE_PATH" "${{ secrets.DEPLOY_APPS_USER }}@${{ secrets.DEPLOY_APPS_HOST }}:$TARGET_PATH"
