@@ -34,7 +34,7 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.DEPLOY_APPS_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H "${{ secrets.REPO_HOST }}" >> ~/.ssh/known_hosts
+          ssh-keyscan -H "${{ secrets.DEPLOY_APPS_HOST }}" >> ~/.ssh/known_hosts
 
       - name: Deploy to ${{ inputs.environment }}.titanos.jellyfin.org 🚀
         env:
