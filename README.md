@@ -1,4 +1,4 @@
-<h1 align="center">Jellyfin Titan OS</h1>
+<h1 align="center">Jellyfin for Titan OS</h1>
 <h3 align="center">Part of the <a href="https://jellyfin.org">Jellyfin Project</a></h3>
 
 ---
