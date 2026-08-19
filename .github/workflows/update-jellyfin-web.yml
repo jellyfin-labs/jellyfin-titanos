@@ -30,11 +30,9 @@ jobs:
 
       - name: Update submodule to ${{ steps.latest.outputs.tag }} 🆙
         run: |
-          git submodule update --init --depth 1 jellyfin-web
-          cd jellyfin-web
-          git fetch --depth=1 origin tag ${{ steps.latest.outputs.tag }}
-          git checkout FETCH_HEAD
-          cd ..
+          git submodule update --init jellyfin-web
+          git -C jellyfin-web fetch --depth=1  origin tag ${{ steps.latest.outputs.tag }}
+          git -C jellyfin-web checkout FETCH_HEAD
 
       - name: Create pull request 🏗️
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
